@@ -1,5 +1,6 @@
 #src-git packages https://git.openwrt.org/feed/packages.git
-src-git packages https://github.com/noblepepper/packages;gcc-7.4.0
+#src-git packages https://github.com/noblepepper/packages;gcc-7.4.0
+src-git packages https://github.com/noblepepper/packages
 src-git luci https://git.openwrt.org/project/luci.git
 src-git routing https://git.openwrt.org/feed/routing.git
 src-git telephony https://git.openwrt.org/feed/telephony.git
