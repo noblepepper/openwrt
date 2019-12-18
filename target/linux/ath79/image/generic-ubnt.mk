@@ -36,8 +36,6 @@ endef
 define Device/ubnt
   DEVICE_VENDOR := Ubiquiti
   DEVICE_PACKAGES := kmod-usb2
-  UBNT_BOARD := XM
-  UBNT_VERSION := 6.0.0
   IMAGES += factory.bin
   IMAGE/factory.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | \
 	append-rootfs | pad-rootfs | check-size $$$$(IMAGE_SIZE) | mkubntimage-split
@@ -45,53 +43,58 @@ endef
 
 define Device/ubnt-bz
   $(Device/ubnt)
-  IMAGE_SIZE := 7448k
-  UBNT_TYPE := BZ
-  UBNT_CHIP := ar7240
   ATH_SOC := ar7241
+  IMAGE_SIZE := 7448k
+  UBNT_BOARD := XM
+  UBNT_CHIP := ar7240
+  UBNT_TYPE := BZ
+  UBNT_VERSION := 6.0.0
 endef
 
 define Device/ubnt-wa
   $(Device/ubnt)
-  IMAGE_SIZE := 15744k
-  UBNT_TYPE := WA
-  UBNT_CHIP := ar934x
-  UBNT_BOARD := WA
-  UBNT_VERSION := 8.5.0
   ATH_SOC := ar9342
+  IMAGE_SIZE := 15744k
+  UBNT_BOARD := WA
+  UBNT_CHIP := ar934x
+  UBNT_TYPE := WA
+  UBNT_VERSION := 8.5.0
 endef
 
 define Device/ubnt-xm
   $(Device/ubnt)
-  DEVICE_VARIANT := XM
-  DEVICE_PACKAGES += kmod-usb-ohci rssileds
-  IMAGE_SIZE := 7448k
-  UBNT_TYPE := XM
-  UBNT_CHIP := ar7240
   ATH_SOC := ar7241
+  DEVICE_VARIANT := XM
+  DEVICE_PACKAGES += kmod-usb-ohci
+  IMAGE_SIZE := 7448k
+  UBNT_BOARD := XM
+  UBNT_CHIP := ar7240
+  UBNT_TYPE := XM
+  UBNT_VERSION := 6.0.0
   KERNEL := kernel-bin | append-dtb | relocate-kernel | lzma | uImage lzma
 endef
 
 define Device/ubnt-xw
   $(Device/ubnt)
+  ATH_SOC := ar9342
   DEVICE_VARIANT := XW
   IMAGE_SIZE := 7552k
-  UBNT_TYPE := XW
-  UBNT_CHIP := ar934x
   UBNT_BOARD := XM
-  UBNT_VERSION := 6.0.4
+  UBNT_CHIP := ar934x
   UBNT_REVISION := 42.$(UBNT_REVISION)
-  ATH_SOC := ar9342
+  UBNT_TYPE := XW
+  UBNT_VERSION := 6.0.4
 endef
 
 define Device/ubnt_acb-isp
   $(Device/ubnt)
   ATH_SOC := qca9533
-  IMAGE_SIZE := 15744k
   DEVICE_MODEL := airCube ISP
+  IMAGE_SIZE := 15744k
   UBNT_BOARD := ACB-ISP
-  UBNT_TYPE := ACB
   UBNT_CHIP := qca9533
+  UBNT_TYPE := ACB
+  UBNT_VERSION := 6.0.0
   IMAGES := sysupgrade.bin
 endef
 TARGET_DEVICES += ubnt_acb-isp
@@ -106,6 +109,7 @@ TARGET_DEVICES += ubnt_airrouter
 define Device/ubnt_bullet-m
   $(Device/ubnt-xm)
   DEVICE_MODEL := Bullet-M
+  DEVICE_PACKAGES += rssileds
   SUPPORTED_DEVICES += bullet-m
 endef
 TARGET_DEVICES += ubnt_bullet-m
@@ -113,6 +117,7 @@ TARGET_DEVICES += ubnt_bullet-m
 define Device/ubnt_bullet-m-xw
   $(Device/ubnt-xw)
   DEVICE_MODEL := Bullet-M
+  DEVICE_PACKAGES += rssileds
   SUPPORTED_DEVICES += bullet-m-xw
 endef
 TARGET_DEVICES += ubnt_bullet-m-xw
@@ -122,23 +127,28 @@ define Device/ubnt_lap-120
   DEVICE_MODEL := LiteAP ac
   DEVICE_VARIANT := LAP-120
   DEVICE_PACKAGES += kmod-ath10k-ct ath10k-firmware-qca988x-ct
-  IMAGE/factory.bin := $$(IMAGE/sysupgrade.bin) | mkubntimage-split
 endef
 TARGET_DEVICES += ubnt_lap-120
+
+define Device/ubnt_litebeam-ac-gen2
+  $(Device/ubnt-wa)
+  DEVICE_MODEL := LiteBeam AC
+  DEVICE_VARIANT := Gen2
+  DEVICE_PACKAGES := kmod-ath10k-ct ath10k-firmware-qca988x-ct
+endef
+TARGET_DEVICES += ubnt_litebeam-ac-gen2
 
 define Device/ubnt_nanobeam-ac
   $(Device/ubnt-wa)
   DEVICE_MODEL := NanoBeam AC
-  DEVICE_PACKAGES += kmod-ath10k-ct ath10k-firmware-qca988x-ct
-  IMAGE/factory.bin := $$(IMAGE/sysupgrade.bin) | mkubntimage-split
+  DEVICE_PACKAGES += kmod-ath10k-ct ath10k-firmware-qca988x-ct rssileds
 endef
 TARGET_DEVICES += ubnt_nanobeam-ac
 
 define Device/ubnt_nanostation-ac
   $(Device/ubnt-wa)
   DEVICE_MODEL := Nanostation AC
-  DEVICE_PACKAGES += kmod-ath10k-ct ath10k-firmware-qca988x-ct
-  IMAGE/factory.bin := $$(IMAGE/sysupgrade.bin) | mkubntimage-split
+  DEVICE_PACKAGES += kmod-ath10k-ct ath10k-firmware-qca988x-ct rssileds
 endef
 TARGET_DEVICES += ubnt_nanostation-ac
 
@@ -146,13 +156,13 @@ define Device/ubnt_nanostation-ac-loco
   $(Device/ubnt-wa)
   DEVICE_MODEL := Nanostation AC loco
   DEVICE_PACKAGES += kmod-ath10k-ct ath10k-firmware-qca988x-ct
-  IMAGE/factory.bin := $$(IMAGE/sysupgrade.bin) | mkubntimage-split
 endef
 TARGET_DEVICES += ubnt_nanostation-ac-loco
 
 define Device/ubnt_nanostation-m
   $(Device/ubnt-xm)
   DEVICE_MODEL := Nanostation M
+  DEVICE_PACKAGES += rssileds
   SUPPORTED_DEVICES += nanostation-m
 endef
 TARGET_DEVICES += ubnt_nanostation-m
@@ -160,6 +170,7 @@ TARGET_DEVICES += ubnt_nanostation-m
 define Device/ubnt_nanostation-m-xw
   $(Device/ubnt-xw)
   DEVICE_MODEL := Nanostation M
+  DEVICE_PACKAGES += rssileds
   SUPPORTED_DEVICES += nanostation-m-xw
 endef
 TARGET_DEVICES += ubnt_nanostation-m-xw
@@ -167,6 +178,7 @@ TARGET_DEVICES += ubnt_nanostation-m-xw
 define Device/ubnt_rocket-m
   $(Device/ubnt-xm)
   DEVICE_MODEL := Rocket-M
+  DEVICE_PACKAGES += rssileds
   SUPPORTED_DEVICES += rocket-m
 endef
 TARGET_DEVICES += ubnt_rocket-m

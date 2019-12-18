@@ -96,6 +96,16 @@ define Device/afoundry_ew1200
 endef
 TARGET_DEVICES += afoundry_ew1200
 
+define Device/alfa-network_quad-e4g
+  MTK_SOC := mt7621
+  IMAGE_SIZE := 16064k
+  DEVICE_VENDOR := ALFA Network
+  DEVICE_MODEL := Quad-E4G
+  DEVICE_PACKAGES := kmod-ata-core kmod-ata-ahci kmod-sdhci-mt7620 kmod-usb3 \
+	uboot-envtools
+endef
+TARGET_DEVICES += alfa-network_quad-e4g
+
 define Device/asiarf_ap7621-001
   MTK_SOC := mt7621
   IMAGE_SIZE := 16000k
@@ -350,6 +360,29 @@ define Device/iodata_wnpr2600g
   DEVICE_PACKAGES := kmod-mt7615e wpad-basic
 endef
 TARGET_DEVICES += iodata_wnpr2600g
+
+define Device/iptime_a6ns-m
+  MTK_SOC := mt7621
+  IMAGE_SIZE := 16128k
+  UIMAGE_NAME := a6nm
+  DEVICE_VENDOR := ipTIME
+  DEVICE_MODEL := A6ns-M
+  DEVICE_PACKAGES := kmod-mt7615e kmod-usb3 kmod-usb-ledtrig-usbport wpad-basic
+endef
+TARGET_DEVICES += iptime_a6ns-m
+
+define Device/jcg_jhr-ac876m
+  MTK_SOC := mt7621
+  IMAGE_SIZE := 16064k
+  IMAGES += factory.bin
+  IMAGE/factory.bin := \
+        $$(sysupgrade_bin) | check-size $$$$(IMAGE_SIZE) | jcg-header 89.1
+  JCG_MAXSIZE := 16064k
+  DEVICE_VENDOR := JCG
+  DEVICE_MODEL := JHR-AC876M
+  DEVICE_PACKAGES := kmod-mt7615e kmod-usb3 kmod-usb-ledtrig-usbport wpad-basic
+endef
+TARGET_DEVICES += jcg_jhr-ac876m
 
 define Device/lenovo_newifi-d1
   MTK_SOC := mt7621
@@ -728,6 +761,7 @@ TARGET_DEVICES += unielec_u7621-06-64m
 define Device/wevo_11acnas
   MTK_SOC := mt7621
   IMAGE_SIZE := 16064k
+  UIMAGE_NAME := 11AC-NAS-Router(0.0.0)
   DEVICE_VENDOR := WeVO
   DEVICE_MODEL := 11AC NAS Router
   DEVICE_PACKAGES := kmod-mt7603 kmod-mt76x2 kmod-usb3 kmod-usb-ledtrig-usbport wpad-basic
@@ -738,6 +772,7 @@ TARGET_DEVICES += wevo_11acnas
 define Device/wevo_w2914ns-v2
   MTK_SOC := mt7621
   IMAGE_SIZE := 16064k
+  UIMAGE_NAME := W2914NS-V2(0.0.0)
   DEVICE_VENDOR := WeVO
   DEVICE_MODEL := W2914NS
   DEVICE_VARIANT := v2
@@ -898,3 +933,12 @@ define Device/zbtlink_zbt-wg3526-32m
   SUPPORTED_DEVICES += ac1200pro zbt-wg3526-32M
 endef
 TARGET_DEVICES += zbtlink_zbt-wg3526-32m
+
+define Device/zio_freezio
+  MTK_SOC := mt7621
+  IMAGE_SIZE := 16064k
+  DEVICE_VENDOR := ZIO
+  DEVICE_MODEL := FREEZIO
+  DEVICE_PACKAGES := kmod-mt7603 kmod-mt76x2 kmod-usb3 kmod-usb-ledtrig-usbport wpad-basic
+endef
+TARGET_DEVICES += zio_freezio

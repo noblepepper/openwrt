@@ -35,6 +35,15 @@ define Device/alfa-network_ac1200rm
 endef
 TARGET_DEVICES += alfa-network_ac1200rm
 
+define Device/alfa-network_r36m-e4g
+  MTK_SOC := mt7620a
+  IMAGE_SIZE := 16064k
+  DEVICE_VENDOR := ALFA Network
+  DEVICE_MODEL := R36M-E4G
+  DEVICE_PACKAGES := kmod-i2c-ralink kmod-usb2 kmod-usb-ohci uboot-envtools uqmi
+endef
+TARGET_DEVICES += alfa-network_r36m-e4g
+
 define Device/alfa-network_tube-e4g
   MTK_SOC := mt7620a
   IMAGE_SIZE := 16064k
@@ -484,6 +493,16 @@ define Device/iodata_wn-ac733gr3
   DEVICE_PACKAGES := kmod-mt76x0e kmod-switch-rtl8367b
 endef
 TARGET_DEVICES += iodata_wn-ac733gr3
+
+define Device/iptime_a104ns
+  MTK_SOC := mt7620a
+  IMAGE_SIZE := 8000k
+  UIMAGE_NAME := a104ns
+  DEVICE_VENDOR := ipTIME
+  DEVICE_MODEL := A104ns
+  DEVICE_PACKAGES := kmod-mt76x0e kmod-usb2 kmod-usb-ohci kmod-usb-ledtrig-usbport
+endef
+TARGET_DEVICES += iptime_a104ns
 
 define Device/kimax_u25awf-h1
   MTK_SOC := mt7620a
