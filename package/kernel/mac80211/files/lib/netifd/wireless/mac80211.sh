@@ -62,6 +62,7 @@ drv_mac80211_init_iface_config() {
 	config_add_string 'macaddr:macaddr' ifname
 
 	config_add_boolean wds powersave enable
+	config_add_string wds_bridge
 	config_add_int maxassoc
 	config_add_int max_listen_int
 	config_add_int dtim_period
@@ -328,6 +329,8 @@ $base_cfg
 
 EOF
 	json_select ..
+	radio_md5sum=$(md5sum $hostapd_conf_file | cut -d" " -f1)
+	echo "radio_config_id=${radio_md5sum}" >> $hostapd_conf_file
 }
 
 mac80211_hostapd_setup_bss() {
@@ -340,12 +343,15 @@ mac80211_hostapd_setup_bss() {
 	append hostapd_cfg "$type=$ifname" "$N"
 
 	hostapd_set_bss_options hostapd_cfg "$vif" || return 1
-	json_get_vars wds dtim_period max_listen_int start_disabled
+	json_get_vars wds wds_bridge dtim_period max_listen_int start_disabled
 
 	set_default wds 0
 	set_default start_disabled 0
 
-	[ "$wds" -gt 0 ] && append hostapd_cfg "wds_sta=1" "$N"
+	[ "$wds" -gt 0 ] && {
+		append hostapd_cfg "wds_sta=1" "$N"
+		[ -n "$wds_bridge" ] && append hostapd_cfg "wds_bridge=$wds_bridge" "$N"
+	}
 	[ "$staidx" -gt 0 -o "$start_disabled" -eq 1 ] && append hostapd_cfg "start_disabled=1" "$N"
 
 	cat >> /var/run/hostapd-$phy.conf <<EOF
@@ -393,7 +399,7 @@ mac80211_generate_mac() {
 	[ "$((0x$mask1))" -gt 0 ] && {
 		b1="0x$1"
 		[ "$id" -gt 0 ] && \
-			b1=$(($b1 ^ ((($id - 1) << 2) | 0x2)))
+			b1=$(($b1 ^ ((($id - !($b1 & 2)) << 2) | 0x2)))
 		printf "%02x:%s:%s:%s:%s:%s" $b1 $2 $3 $4 $5 $6
 		return
 	}
@@ -527,6 +533,7 @@ mac80211_prepare_vif() {
 
 			NEWAPLIST="${NEWAPLIST}$ifname "
 			[ -n "$hostapd_ctrl" ] || {
+				ap_ifname="${ifname}"
 				hostapd_ctrl="${hostapd_ctrl:-/var/run/hostapd/$ifname}"
 			}
 		;;
@@ -747,13 +754,15 @@ mac80211_setup_vif() {
 	json_get_var vif_enable enable 1
 
 	[ "$vif_enable" = 1 ] || action=down
-	logger ip link set dev "$ifname" $action
-	ip link set dev "$ifname" "$action" || {
-		wireless_setup_vif_failed IFUP_ERROR
-		json_select ..
-		return
-	}
-	[ -z "$vif_txpower" ] || iw dev "$ifname" set txpower fixed "${vif_txpower%%.*}00"
+	if [ "$mode" != "ap" ] || [ "$ifname" = "$ap_ifname" ]; then
+		logger ip link set dev "$ifname" $action
+		ip link set dev "$ifname" "$action" || {
+			wireless_setup_vif_failed IFUP_ERROR
+			json_select ..
+			return
+		}
+		[ -z "$vif_txpower" ] || iw dev "$ifname" set txpower fixed "${vif_txpower%%.*}00"
+	fi
 
 	case "$mode" in
 		mesh)
@@ -890,7 +899,7 @@ drv_mac80211_setup() {
 	staidx=0
 
 	[ -n "$chanbw" ] && {
-		for file in /sys/kernel/debug/ieee80211/$phy/ath9k/chanbw /sys/kernel/debug/ieee80211/$phy/ath5k/bwmode; do
+		for file in /sys/kernel/debug/ieee80211/$phy/ath9k*/chanbw /sys/kernel/debug/ieee80211/$phy/ath5k/bwmode; do
 			[ -f "$file" ] && echo "$chanbw" > "$file"
 		done
 	}
@@ -918,6 +927,7 @@ drv_mac80211_setup() {
 
 	has_ap=
 	hostapd_ctrl=
+	ap_ifname=
 	hostapd_noscan=
 	for_each_interface "ap" mac80211_check_ap
 
@@ -939,11 +949,16 @@ drv_mac80211_setup() {
 	local add_ap=0
 	local primary_ap=${NEWAPLIST%% *}
 	[ -n "$hostapd_ctrl" ] && {
+		local no_reload=1
 		if [ -n "$(ubus list | grep hostapd.$primary_ap)" ]; then
 			[ "${NEW_MD5}" = "${OLD_MD5}" ] || {
 				ubus call hostapd.$primary_ap reload
+				no_reload=$?
+				mac80211_vap_cleanup hostapd "${OLDAPLIST}"
+		                [ -n "${NEWAPLIST}" ] && mac80211_iw_interface_add "$phy" "${NEWAPLIST%% *}" __ap || return
 			}
-		else
+		fi
+		if [ "$no_reload" != "0" ]; then
 			add_ap=1
 			ubus wait_for hostapd.$phy
 			ubus call hostapd.${phy} config_add "{\"iface\":\"$primary_ap\", \"config\":\"${hostapd_conf_file}\"}"
@@ -983,13 +998,22 @@ drv_mac80211_setup() {
 	wireless_set_up
 }
 
-list_phy_interfaces() {
+_list_phy_interfaces() {
 	local phy="$1"
 	if [ -d "/sys/class/ieee80211/${phy}/device/net" ]; then
 		ls "/sys/class/ieee80211/${phy}/device/net" 2>/dev/null;
 	else
 		ls "/sys/class/ieee80211/${phy}/device" 2>/dev/null | grep net: | sed -e 's,net:,,g'
 	fi
+}
+
+list_phy_interfaces() {
+	local phy="$1"
+
+	for dev in $(_list_phy_interfaces "$phy"); do
+		readlink "/sys/class/net/${dev}/phy80211" | grep -q "/${phy}\$" || continue
+		echo "$dev"
+	done
 }
 
 drv_mac80211_teardown() {
