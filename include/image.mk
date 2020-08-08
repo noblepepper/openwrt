@@ -45,6 +45,7 @@ IMG_PREFIX:=$(VERSION_DIST_SANITIZED)-$(IMG_PREFIX_VERNUM)$(IMG_PREFIX_VERCODE)$
 IMG_ROOTFS:=$(IMG_PREFIX)-rootfs
 IMG_COMBINED:=$(IMG_PREFIX)-combined
 IMG_PART_SIGNATURE:=$(shell echo $(SOURCE_DATE_EPOCH)$(LINUX_VERMAGIC) | mkhash md5 | cut -b1-8)
+IMG_PART_DISKGUID:=$(shell echo $(SOURCE_DATE_EPOCH)$(LINUX_VERMAGIC) | mkhash md5 | sed -E 's/(.{8})(.{4})(.{4})(.{4})(.{10})../\1-\2-\3-\4-\500/')
 
 MKFS_DEVTABLE_OPT := -D $(INCLUDE_DIR)/device_table.txt
 
@@ -418,6 +419,8 @@ define Device/Init
 
   BOARD_NAME :=
   UIMAGE_NAME :=
+  DEVICE_COMPAT_VERSION := 1.0
+  DEVICE_COMPAT_MESSAGE :=
   SUPPORTED_DEVICES :=
   IMAGE_METADATA :=
 
@@ -425,6 +428,7 @@ define Device/Init
 
   UBOOT_PATH :=  $(STAGING_DIR_IMAGE)/uboot-$(1)
 
+  BROKEN :=
   DEFAULT :=
 endef
 
@@ -434,6 +438,7 @@ DEFAULT_DEVICE_VARS := \
   VID_HDR_OFFSET UBINIZE_OPTS UBINIZE_PARTS MKUBIFS_OPTS DEVICE_DTS \
   DEVICE_DTS_CONFIG DEVICE_DTS_DIR SOC BOARD_NAME UIMAGE_NAME SUPPORTED_DEVICES \
   IMAGE_METADATA KERNEL_ENTRY KERNEL_LOADADDR UBOOT_PATH IMAGE_SIZE \
+  DEVICE_COMPAT_VERSION DEVICE_COMPAT_MESSAGE \
   DEVICE_VENDOR DEVICE_MODEL DEVICE_VARIANT \
   DEVICE_ALT0_VENDOR DEVICE_ALT0_MODEL DEVICE_ALT0_VARIANT \
   DEVICE_ALT1_VENDOR DEVICE_ALT1_MODEL DEVICE_ALT1_VARIANT \
@@ -544,8 +549,11 @@ endef
 
 define Device/Build/image
   GZ_SUFFIX := $(if $(filter %dtb %gz,$(2)),,$(if $(and $(findstring ext4,$(1)),$(CONFIG_TARGET_IMAGES_GZIP)),.gz))
-  $$(_TARGET): $(BIN_DIR)/$(call IMAGE_NAME,$(1),$(2))$$(GZ_SUFFIX)
+  $$(_TARGET): $(if $(CONFIG_JSON_OVERVIEW_IMAGE_INFO), \
+	  $(BUILD_DIR)/json_info_files/$(call IMAGE_NAME,$(1),$(2)).json, \
+	  $(BIN_DIR)/$(call IMAGE_NAME,$(1),$(2))$$(GZ_SUFFIX))
   $(eval $(call Device/Export,$(KDIR)/tmp/$(call IMAGE_NAME,$(1),$(2)),$(1)))
+
   ROOTFS/$(1)/$(3) := \
 	$(KDIR)/root.$(1)$$(strip \
 		$$(if $$(FS_OPTIONS/$(1)),+fs=$$(call param_mangle,$$(FS_OPTIONS/$(1)))) \
@@ -567,32 +575,34 @@ define Device/Build/image
 
   $(BIN_DIR)/$(call IMAGE_NAME,$(1),$(2)): $(KDIR)/tmp/$(call IMAGE_NAME,$(1),$(2))
 	cp $$^ $$@
-	$(if $(CONFIG_JSON_ADD_IMAGE_INFO), \
-		DEVICE_ID="$(DEVICE_NAME)" \
-		BIN_DIR="$(BIN_DIR)" \
-		IMAGE_NAME="$(IMAGE_NAME)" \
-		IMAGE_TYPE=$(word 1,$(subst ., ,$(2))) \
-		IMAGE_PREFIX="$(IMAGE_PREFIX)" \
-		DEVICE_VENDOR="$(DEVICE_VENDOR)" \
-		DEVICE_MODEL="$(DEVICE_MODEL)" \
-		DEVICE_VARIANT="$(DEVICE_VARIANT)" \
-		DEVICE_ALT0_VENDOR="$(DEVICE_ALT0_VENDOR)" \
-		DEVICE_ALT0_MODEL="$(DEVICE_ALT0_MODEL)" \
-		DEVICE_ALT0_VARIANT="$(DEVICE_ALT0_VARIANT)" \
-		DEVICE_ALT1_VENDOR="$(DEVICE_ALT1_VENDOR)" \
-		DEVICE_ALT1_MODEL="$(DEVICE_ALT1_MODEL)" \
-		DEVICE_ALT1_VARIANT="$(DEVICE_ALT1_VARIANT)" \
-		DEVICE_ALT2_VENDOR="$(DEVICE_ALT2_VENDOR)" \
-		DEVICE_ALT2_MODEL="$(DEVICE_ALT2_MODEL)" \
-		DEVICE_ALT2_VARIANT="$(DEVICE_ALT2_VARIANT)" \
-		DEVICE_TITLE="$(DEVICE_TITLE)" \
-		TARGET="$(BOARD)" \
-		SUBTARGET="$(if $(SUBTARGET),$(SUBTARGET),generic)" \
-		VERSION_NUMBER="$(VERSION_NUMBER)" \
-		VERSION_CODE="$(VERSION_CODE)" \
-		SUPPORTED_DEVICES="$(SUPPORTED_DEVICES)" \
-		$(TOPDIR)/scripts/json_add_image_info.py \
-	)
+
+  $(BUILD_DIR)/json_info_files/$(call IMAGE_NAME,$(1),$(2)).json: $(BIN_DIR)/$(call IMAGE_NAME,$(1),$(2))$$(GZ_SUFFIX)
+	@mkdir -p $$(shell dirname $$@)
+	DEVICE_ID="$(DEVICE_NAME)" \
+	BIN_DIR="$(BIN_DIR)" \
+	IMAGE_NAME="$(IMAGE_NAME)" \
+	IMAGE_TYPE=$(word 1,$(subst ., ,$(2))) \
+	IMAGE_PREFIX="$(IMAGE_PREFIX)" \
+	DEVICE_VENDOR="$(DEVICE_VENDOR)" \
+	DEVICE_MODEL="$(DEVICE_MODEL)" \
+	DEVICE_VARIANT="$(DEVICE_VARIANT)" \
+	DEVICE_ALT0_VENDOR="$(DEVICE_ALT0_VENDOR)" \
+	DEVICE_ALT0_MODEL="$(DEVICE_ALT0_MODEL)" \
+	DEVICE_ALT0_VARIANT="$(DEVICE_ALT0_VARIANT)" \
+	DEVICE_ALT1_VENDOR="$(DEVICE_ALT1_VENDOR)" \
+	DEVICE_ALT1_MODEL="$(DEVICE_ALT1_MODEL)" \
+	DEVICE_ALT1_VARIANT="$(DEVICE_ALT1_VARIANT)" \
+	DEVICE_ALT2_VENDOR="$(DEVICE_ALT2_VENDOR)" \
+	DEVICE_ALT2_MODEL="$(DEVICE_ALT2_MODEL)" \
+	DEVICE_ALT2_VARIANT="$(DEVICE_ALT2_VARIANT)" \
+	DEVICE_TITLE="$(DEVICE_TITLE)" \
+	DEVICE_PACKAGES="$(DEVICE_PACKAGES)" \
+	TARGET="$(BOARD)" \
+	SUBTARGET="$(if $(SUBTARGET),$(SUBTARGET),generic)" \
+	VERSION_NUMBER="$(VERSION_NUMBER)" \
+	VERSION_CODE="$(VERSION_CODE)" \
+	SUPPORTED_DEVICES="$(SUPPORTED_DEVICES)" \
+	$(TOPDIR)/scripts/json_add_image_info.py $$@
 
 endef
 
@@ -611,8 +621,6 @@ define Device/Build/artifact
 endef
 
 define Device/Build
-  $(shell rm -f $(BIN_DIR)/$(IMG_PREFIX)-$(1).json)
-
   $(if $(CONFIG_TARGET_ROOTFS_INITRAMFS),$(call Device/Build/initramfs,$(1)))
   $(call Device/Build/kernel,$(1))
 
@@ -634,6 +642,7 @@ Target-Profile-Name: $(DEVICE_DISPLAY)
 Target-Profile-Packages: $(DEVICE_PACKAGES)
 Target-Profile-hasImageMetadata: $(if $(foreach image,$(IMAGES),$(findstring append-metadata,$(IMAGE/$(image)))),1,0)
 Target-Profile-SupportedDevices: $(SUPPORTED_DEVICES)
+$(if $(BROKEN),Target-Profile-Broken: $(BROKEN))
 $(if $(DEFAULT),Target-Profile-Default: $(DEFAULT))
 Target-Profile-Description:
 $(DEVICE_DESCRIPTION)
@@ -698,6 +707,7 @@ define BuildImage
 
     image_prepare: compile
 		mkdir -p $(BIN_DIR) $(KDIR)/tmp
+		rm -rf $(BUILD_DIR)/json_info_files
 		$(call Image/Prepare)
 
     legacy-images-prepare-make: image_prepare

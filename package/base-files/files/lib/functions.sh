@@ -107,9 +107,14 @@ config_unset() {
 # config_get <variable> <section> <option> [<default>]
 # config_get <section> <option>
 config_get() {
-	case "$3" in
-		"") eval echo "\"\${CONFIG_${1}_${2}:-\${4}}\"";;
-		*)  eval export ${NO_EXPORT:+-n} -- "${1}=\${CONFIG_${2}_${3}:-\${4}}";;
+	case "$2${3:-$1}" in
+		*[^A-Za-z0-9_]*) : ;;
+		*)
+			case "$3" in
+				"") eval echo "\"\${CONFIG_${1}_${2}:-\${4}}\"";;
+				*)  eval export ${NO_EXPORT:+-n} -- "${1}=\${CONFIG_${2}_${3}:-\${4}}";;
+			esac
+		;;
 	esac
 }
 
@@ -176,7 +181,7 @@ default_prerm() {
 		ret=$?
 	fi
 
-	local shell="$(which bash)"
+	local shell="$(command -v bash)"
 	for i in $(grep -s "^/etc/init.d/" "$root/usr/lib/opkg/info/${pkgname}.list"); do
 		if [ -n "$root" ]; then
 			${shell:-/bin/sh} "$root/etc/rc.common" "$root$i" disable
@@ -254,7 +259,6 @@ default_postinst() {
 		fi
 
 		if grep -m1 -q -s "^/etc/uci-defaults/" "$filelist"; then
-			. /lib/functions/system.sh
 			[ -d /tmp/.uci ] || mkdir -p /tmp/.uci
 			for i in $(grep -s "^/etc/uci-defaults/" "$filelist"); do
 				( [ -f "$i" ] && cd "$(dirname $i)" && . "$i" ) && rm -f "$i"
@@ -265,7 +269,7 @@ default_postinst() {
 		rm -f /tmp/luci-indexcache
 	fi
 
-	local shell="$(which bash)"
+	local shell="$(command -v bash)"
 	for i in $(grep -s "^/etc/init.d/" "$root$filelist"); do
 		if [ -n "$root" ]; then
 			${shell:-/bin/sh} "$root/etc/rc.common" "$root$i" enable

@@ -12,7 +12,7 @@ include $(INCLUDE_DIR)/version.mk
 include $(INCLUDE_DIR)/feeds.mk
 
 PKG_NAME:=base-files
-PKG_RELEASE:=214
+PKG_RELEASE:=226
 PKG_FLAGS:=nonshared
 
 PKG_FILE_DEPENDS:=$(PLATFORM_DIR)/ $(GENERIC_PLATFORM_DIR)/base-files/
@@ -39,15 +39,6 @@ define Package/base-files
   CATEGORY:=Base system
   DEPENDS:=+netifd +libc +procd +jsonfilter +SIGNED_PACKAGES:usign +SIGNED_PACKAGES:openwrt-keyring +NAND_SUPPORT:ubi-utils +fstools +fwtool
   TITLE:=Base filesystem for OpenWrt
-  URL:=http://openwrt.org/
-  VERSION:=$(PKG_RELEASE)-$(REVISION)
-endef
-
-define Package/urandom-seed
-  SECTION:=base
-  CATEGORY:=Base system
-  DEPENDS:=+libc +ubox-getrandom
-  TITLE:=/etc/urandom.seed handling for OpenWrt
   URL:=http://openwrt.org/
   VERSION:=$(PKG_RELEASE)-$(REVISION)
 endef
@@ -118,11 +109,13 @@ ifdef CONFIG_SIGNED_PACKAGES
 
   endef
 
+ifndef CONFIG_BUILDBOT
   define Package/base-files/install-key
 	mkdir -p $(1)/etc/opkg/keys
 	$(CP) $(BUILD_KEY).pub $(1)/etc/opkg/keys/`$(STAGING_DIR_HOST)/bin/usign -F -p $(BUILD_KEY).pub`
 
   endef
+endif
 endif
 
 ifeq ($(CONFIG_NAND_SUPPORT),)

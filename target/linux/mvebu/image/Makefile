@@ -40,6 +40,20 @@ define Build/boot-img-ext4
 	make_ext4fs -J -L kernel -l $(CONFIG_TARGET_KERNEL_PARTSIZE)M $@.bootimg $@.boot
 endef
 
+define Build/buffalo-kernel-jffs2
+	rm -rf $(KDIR)/kernel_jffs2 $@.fakerd
+	mkdir -p $(KDIR)/kernel_jffs2
+	dd if=/dev/zero of=$@.fakerd bs=131008 count=1 conv=sync
+	$(STAGING_DIR_HOST)/bin/mkimage \
+		-T ramdisk -A $(LINUX_KARCH) -O linux -C gzip -n 'fake initrd' \
+		-d $@.fakerd $(KDIR)/kernel_jffs2/initrd.buffalo
+	cp $@ $(KDIR)/kernel_jffs2/uImage.buffalo
+	$(STAGING_DIR_HOST)/bin/mkfs.jffs2 \
+		--little-endian -v --squash-uids -q -f -n -x lzma -x rtime -m none \
+		--eraseblock=128KiB --pad=$(KERNEL_SIZE) -d $(KDIR)/kernel_jffs2 -o $@
+	rm -rf $(KDIR)/kernel_jffs2 $@.fakerd
+endef
+
 define Build/sdcard-img
 	SIGNATURE="$(IMG_PART_SIGNATURE)" \
 	./gen_mvebu_sdcard_img.sh $@ \
@@ -90,7 +104,6 @@ define Device/Default
   KERNEL_NAME := zImage
   KERNEL := kernel-bin | append-dtb | uImage none
   IMAGES := sysupgrade.bin
-  IMAGE/factory.img := append-kernel | pad-to $$$$(KERNEL_SIZE) | append-ubi | pad-to $$$$(PAGESIZE)
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
   SUPPORTED_DEVICES = $(subst _,$(comma),$(1))
   UBINIZE_OPTS := -E 5
@@ -124,16 +137,6 @@ define Device/NAND-512K
   PAGESIZE := 4096
 endef
 
-ifeq ($(SUBTARGET),cortexa9)
-include cortexa9.mk
-endif
-
-ifeq ($(SUBTARGET),cortexa53)
-include cortexa53.mk
-endif
-
-ifeq ($(SUBTARGET),cortexa72)
-include cortexa72.mk
-endif
+include $(SUBTARGET).mk
 
 $(eval $(call BuildImage))

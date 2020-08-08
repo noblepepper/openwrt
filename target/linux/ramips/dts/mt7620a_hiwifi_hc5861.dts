@@ -71,11 +71,12 @@
 };
 
 &ethernet {
-	status = "okay";
-	mtd-mac-address = <&factory 0x4>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&rgmii1_pins &mdio_pins>;
-	mediatek,portmap = "wllll";
+
+	mtd-mac-address = <&factory 0x4>;
+
+	mediatek,portmap = "llllw";
 
 	port@5 {
 		status = "okay";
