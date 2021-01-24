@@ -70,24 +70,6 @@ endef
 $(eval $(call KernelPackage,usb-phy-nop))
 
 
-define KernelPackage/usb-phy-qcom-dwc3
-  TITLE:=DWC3 USB QCOM PHY driver
-  DEPENDS:=@(TARGET_ipq40xx||TARGET_ipq806x)
-  KCONFIG:= CONFIG_PHY_QCOM_DWC3
-  FILES:= \
-    $(LINUX_DIR)/drivers/phy/qualcomm/phy-qcom-dwc3.ko
-  AUTOLOAD:=$(call AutoLoad,45,phy-qcom-dwc3,1)
-  $(call AddDepends/usb)
-endef
-
-define KernelPackage/usb-phy-qcom-dwc3/description
- This driver provides support for the integrated DesignWare
- USB3 IP Core within the QCOM SoCs.
-endef
-
-$(eval $(call KernelPackage,usb-phy-qcom-dwc3))
-
-
 define KernelPackage/phy-ath79-usb
   TITLE:=Support for ATH79 USB PHY
   KCONFIG:=CONFIG_PHY_AR7100_USB \
@@ -476,27 +458,9 @@ endef
 $(eval $(call KernelPackage,usb-dwc3))
 
 
-define KernelPackage/usb-dwc3-of-simple
-  TITLE:=DWC3 USB simple OF driver
-  DEPENDS:=@LINUX_4_14 @(TARGET_ipq40xx||TARGET_ipq806x) +kmod-usb-dwc3
-  KCONFIG:= CONFIG_USB_DWC3_OF_SIMPLE
-  FILES:= $(LINUX_DIR)/drivers/usb/dwc3/dwc3-of-simple.ko
-  AUTOLOAD:=$(call AutoLoad,53,dwc3-of-simple,1)
-  $(call AddDepends/usb)
-endef
-
-define KernelPackage/usb-dwc3-of-simple/description
- This driver provides generic platform glue for the integrated DesignWare
- USB3 IP Core.
-endef
-
-
-$(eval $(call KernelPackage,usb-dwc3-of-simple))
-
-
 define KernelPackage/usb-dwc3-qcom
   TITLE:=DWC3 Qualcomm USB driver
-  DEPENDS:=@(!LINUX_4_14) @(TARGET_ipq40xx||TARGET_ipq806x) +kmod-usb-dwc3
+  DEPENDS:=@(TARGET_ipq40xx||TARGET_ipq806x) +kmod-usb-dwc3
   KCONFIG:= CONFIG_USB_DWC3_QCOM
   FILES:= $(LINUX_DIR)/drivers/usb/dwc3/dwc3-qcom.ko
   AUTOLOAD:=$(call AutoLoad,53,dwc3-qcom,1)
@@ -1140,6 +1104,21 @@ define AddDepends/usb-net
 endef
 
 
+define KernelPackage/usb-net-aqc111
+  TITLE:=Support for USB-to-Ethernet Aquantia AQtion 5/2.5GbE
+  KCONFIG:=CONFIG_USB_NET_AQC111
+  FILES:=$(LINUX_DIR)/drivers/$(USBNET_DIR)/aqc111.ko
+  AUTOLOAD:=$(call AutoProbe,aqc111)
+  $(call AddDepends/usb-net)
+endef
+
+define KernelPackage/usb-net-aqc111/description
+ Support for USB-to-Ethernet Aquantia AQtion 5/2.5GbE
+endef
+
+$(eval $(call KernelPackage,usb-net-aqc111))
+
+
 define KernelPackage/usb-net-asix
   TITLE:=Kernel module for USB-to-Ethernet Asix convertors
   DEPENDS:=+kmod-libphy
@@ -1507,6 +1486,23 @@ endef
 $(eval $(call KernelPackage,usb-hid))
 
 
+define KernelPackage/usb-hid-cp2112
+  SUBMENU:=$(USB_MENU)
+  TITLE:=Silicon Labs CP2112 HID USB to SMBus Master Bridge
+  KCONFIG:=CONFIG_GPIOLIB=y CONFIG_HID_CP2112
+  DEPENDS:=+kmod-usb-hid +kmod-i2c-core
+  FILES:=$(LINUX_DIR)/drivers/hid/hid-cp2112.ko
+  AUTOLOAD:=$(call AutoProbe,hid-cp2112)
+endef
+
+define KernelPackage/usb-hid-cp2112/description
+ HID device driver which registers as an i2c adapter and gpiochip to expose
+ these functions of the CP2112.
+endef
+
+$(eval $(call KernelPackage,usb-hid-cp2112))
+
+
 define KernelPackage/usb-yealink
   TITLE:=USB Yealink VOIP phone
   DEPENDS:=+kmod-input-evdev
@@ -1594,7 +1590,7 @@ $(eval $(call KernelPackage,usbip-server))
 
 define KernelPackage/usb-chipidea
   TITLE:=Host and device support for Chipidea controllers
-  DEPENDS:=+USB_GADGET_SUPPORT:kmod-usb-gadget @TARGET_ar71xx||TARGET_ath79 +kmod-usb-ehci +kmod-usb-phy-nop
+  DEPENDS:=+USB_GADGET_SUPPORT:kmod-usb-gadget @TARGET_ath79 +kmod-usb-ehci +kmod-usb-phy-nop
   KCONFIG:= \
 	CONFIG_EXTCON \
 	CONFIG_USB_CHIPIDEA \
@@ -1604,8 +1600,8 @@ define KernelPackage/usb-chipidea
   FILES:= \
 	$(LINUX_DIR)/drivers/extcon/extcon-core.ko \
 	$(LINUX_DIR)/drivers/usb/chipidea/ci_hdrc.ko \
-	$(LINUX_DIR)/drivers/usb/common/ulpi.ko@ge4.18 \
-	$(LINUX_DIR)/drivers/usb/roles/roles.ko@ge5.0
+	$(LINUX_DIR)/drivers/usb/common/ulpi.ko \
+	$(LINUX_DIR)/drivers/usb/roles/roles.ko
   AUTOLOAD:=$(call AutoLoad,39,ci_hdrc,1)
   $(call AddDepends/usb)
 endef
