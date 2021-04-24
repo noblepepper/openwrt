@@ -1,4 +1,3 @@
-#!/bin/sh
 # Copyright (C) 2006-2014 OpenWrt.org
 # Copyright (C) 2006 Fokus Fraunhofer <carsten.tittel@fokus.fraunhofer.de>
 # Copyright (C) 2010 Vertical Communications
@@ -383,6 +382,16 @@ user_exists() {
 
 board_name() {
 	[ -e /tmp/sysinfo/board_name ] && cat /tmp/sysinfo/board_name || echo "generic"
+}
+
+cmdline_get_var() {
+	local var=$1
+	local cmdlinevar tmp
+
+	for cmdlinevar in $(cat /proc/cmdline); do
+		tmp=${cmdlinevar##${var}}
+		[ "=" = "${tmp:0:1}" ] && echo ${tmp:1}
+	done
 }
 
 [ -z "$IPKG_INSTROOT" ] && [ -f /lib/config/uci.sh ] && . /lib/config/uci.sh

@@ -1,10 +1,7 @@
+# SPDX-License-Identifier: GPL-2.0-only
 #
 # Copyright (C) 2013-2019 OpenWrt.org
 # Copyright (C) 2016 Yousong Zhou
-#
-# This is free software, licensed under the GNU General Public License v2.
-# See /LICENSE for more information.
-#
 
 define Device/cubietech_cubieboard2
   DEVICE_VENDOR := Cubietech
@@ -80,6 +77,16 @@ define Device/lemaker_bananapi
 endef
 TARGET_DEVICES += lemaker_bananapi
 
+define Device/sinovoip_bananapi-m2-berry
+  DEVICE_VENDOR := Sinovoip
+  DEVICE_MODEL := Banana Pi M2 Berry
+  DEVICE_PACKAGES:=kmod-rtc-sunxi kmod-ata-sunxi kmod-brcmfmac \
+	brcmfmac-firmware-43430-sdio wpad-basic-wolfssl
+  SUPPORTED_DEVICES:=lemaker,bananapi-m2-berry
+  SOC := sun8i-v40
+endef
+TARGET_DEVICES += sinovoip_bananapi-m2-berry
+
 define Device/sinovoip_bananapi-m2-ultra
   DEVICE_VENDOR := Sinovoip
   DEVICE_MODEL := Banana Pi M2 Ultra
@@ -106,6 +113,14 @@ define Device/linksprite_pcduino3
   SOC := sun7i-a20
 endef
 TARGET_DEVICES += linksprite_pcduino3
+
+define Device/linksprite_pcduino3-nano
+  DEVICE_VENDOR := LinkSprite
+  DEVICE_MODEL := pcDuino3 Nano
+  DEVICE_PACKAGES:=kmod-rtc-sunxi kmod-ata-sunxi
+  SOC := sun7i-a20
+endef
+TARGET_DEVICES += linksprite_pcduino3-nano
 
 define Device/mele_m9
   DEVICE_VENDOR := Mele
