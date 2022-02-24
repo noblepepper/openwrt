@@ -9,7 +9,6 @@ define Device/tplink_archer-a7-v5
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ledtrig-usbport kmod-ath10k-ct \
 	ath10k-firmware-qca988x-ct
   TPLINK_BOARD_ID := ARCHER-A7-V5
-  BOARDNAME := ARCHER-A7-V5
 endef
 TARGET_DEVICES += tplink_archer-a7-v5
 
@@ -181,7 +180,6 @@ define Device/tplink_archer-c7-v4
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ledtrig-usbport kmod-ath10k-ct \
 	ath10k-firmware-qca988x-ct
   TPLINK_BOARD_ID := ARCHER-C7-V4
-  BOARDNAME := ARCHER-C7-V4
   SUPPORTED_DEVICES += archer-c7-v4
 endef
 TARGET_DEVICES += tplink_archer-c7-v4
@@ -195,7 +193,6 @@ define Device/tplink_archer-c7-v5
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ledtrig-usbport kmod-ath10k-ct \
 	ath10k-firmware-qca988x-ct
   TPLINK_BOARD_ID := ARCHER-C7-V5
-  BOARDNAME := ARCHER-C7-V5
   SUPPORTED_DEVICES += archer-c7-v5
 endef
 TARGET_DEVICES += tplink_archer-c7-v5
@@ -207,7 +204,6 @@ define Device/tplink_archer-d50-v1
   DEVICE_VARIANT := v1
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ledtrig-usbport \
 	kmod-ath10k-ct-smallbuffers ath10k-firmware-qca988x-ct
-  BOARDNAME := ARCHER-D50-V1
   IMAGE_SIZE := 7808k
   TPLINK_HWID := 0xC1200001
   TPLINK_HWREV := 0x00000046
@@ -362,6 +358,17 @@ define Device/tplink_cpe610-v2
 endef
 TARGET_DEVICES += tplink_cpe610-v2
 
+define Device/tplink_cpe710-v1
+  $(Device/tplink-safeloader-uimage)
+  SOC := qca9563
+  IMAGE_SIZE := 15680k
+  DEVICE_MODEL := CPE710
+  DEVICE_VARIANT := v1
+  DEVICE_PACKAGES := kmod-ath10k-ct ath10k-firmware-qca9888-ct
+  TPLINK_BOARD_ID := CPE710V1
+endef
+TARGET_DEVICES += tplink_cpe710-v1
+
 define Device/tplink-eap2x5
   $(Device/tplink-safeloader)
   LOADER_TYPE := elf
@@ -381,6 +388,17 @@ define Device/tplink_eap225-outdoor-v1
   TPLINK_BOARD_ID := EAP225-OUTDOOR-V1
 endef
 TARGET_DEVICES += tplink_eap225-outdoor-v1
+
+define Device/tplink_eap225-v1
+  $(Device/tplink-eap2x5)
+  SOC := qca9563
+  IMAGE_SIZE := 13824k
+  DEVICE_MODEL := EAP225
+  DEVICE_VARIANT := v1
+  DEVICE_PACKAGES := kmod-ath10k-ct ath10k-firmware-qca988x-ct
+  TPLINK_BOARD_ID := EAP225-V1
+endef
+TARGET_DEVICES += tplink_eap225-v1
 
 define Device/tplink_eap225-v3
   $(Device/tplink-eap2x5)
@@ -509,6 +527,17 @@ define Device/tplink_tl-mr6400-v1
   SUPPORTED_DEVICES += tl-mr6400
 endef
 TARGET_DEVICES += tplink_tl-mr6400-v1
+
+define Device/tplink_tl-wa1201-v2
+  $(Device/tplink-safeloader-uimage)
+  SOC := qca9563
+  IMAGE_SIZE := 13184k
+  DEVICE_MODEL := TL-WA1201
+  DEVICE_VARIANT := v2
+  TPLINK_BOARD_ID := TL-WA1201-V2
+  DEVICE_PACKAGES := kmod-ath10k-ct ath10k-firmware-qca9888-ct
+endef
+TARGET_DEVICES += tplink_tl-wa1201-v2
 
 define Device/tplink_tl-wdr3500-v1
   $(Device/tplink-8mlzma)
@@ -753,6 +782,15 @@ define Device/tplink_tl-wr810n-v2
   SUPPORTED_DEVICES += tl-wr810n-v2
 endef
 TARGET_DEVICES += tplink_tl-wr810n-v2
+
+define Device/tplink_tl-wr841hp-v2
+  $(Device/tplink-8mlzma)
+  SOC := ar9344
+  DEVICE_MODEL := TL-WR841HP
+  DEVICE_VARIANT := v2
+  TPLINK_HWID := 0x08411002
+endef
+TARGET_DEVICES += tplink_tl-wr841hp-v2
 
 define Device/tplink_tl-wr841hp-v3
   $(Device/tplink-8mlzma)

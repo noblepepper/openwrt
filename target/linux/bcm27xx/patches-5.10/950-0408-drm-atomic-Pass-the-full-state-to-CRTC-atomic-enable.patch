@@ -698,7 +698,7 @@ Link: https://patchwork.freedesktop.org/patch/msgid/845aa10ef171fc0ea060495efef1
  	struct mdp5_crtc_state *mdp5_cstate = to_mdp5_crtc_state(crtc->state);
 --- a/drivers/gpu/drm/mxsfb/mxsfb_kms.c
 +++ b/drivers/gpu/drm/mxsfb/mxsfb_kms.c
-@@ -303,7 +303,7 @@ static void mxsfb_crtc_atomic_flush(stru
+@@ -343,7 +343,7 @@ static void mxsfb_crtc_atomic_flush(stru
  }
  
  static void mxsfb_crtc_atomic_enable(struct drm_crtc *crtc,
@@ -707,7 +707,7 @@ Link: https://patchwork.freedesktop.org/patch/msgid/845aa10ef171fc0ea060495efef1
  {
  	struct mxsfb_drm_private *mxsfb = to_mxsfb_drm_private(crtc->dev);
  	struct drm_device *drm = mxsfb->drm;
-@@ -327,7 +327,7 @@ static void mxsfb_crtc_atomic_enable(str
+@@ -367,7 +367,7 @@ static void mxsfb_crtc_atomic_enable(str
  }
  
  static void mxsfb_crtc_atomic_disable(struct drm_crtc *crtc,
@@ -756,7 +756,7 @@ Link: https://patchwork.freedesktop.org/patch/msgid/845aa10ef171fc0ea060495efef1
  }
 --- a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
 +++ b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-@@ -710,7 +710,7 @@ static int rcar_du_crtc_atomic_check(str
+@@ -716,7 +716,7 @@ static int rcar_du_crtc_atomic_check(str
  }
  
  static void rcar_du_crtc_atomic_enable(struct drm_crtc *crtc,
@@ -765,7 +765,7 @@ Link: https://patchwork.freedesktop.org/patch/msgid/845aa10ef171fc0ea060495efef1
  {
  	struct rcar_du_crtc *rcrtc = to_rcar_crtc(crtc);
  	struct rcar_du_crtc_state *rstate = to_rcar_crtc_state(crtc->state);
-@@ -745,8 +745,10 @@ static void rcar_du_crtc_atomic_enable(s
+@@ -751,8 +751,10 @@ static void rcar_du_crtc_atomic_enable(s
  }
  
  static void rcar_du_crtc_atomic_disable(struct drm_crtc *crtc,
@@ -1114,7 +1114,7 @@ Link: https://patchwork.freedesktop.org/patch/msgid/845aa10ef171fc0ea060495efef1
  {
  	struct zynqmp_disp *disp = crtc_to_disp(crtc);
  	struct drm_display_mode *adjusted_mode = &crtc->state->adjusted_mode;
-@@ -1472,8 +1472,10 @@ zynqmp_disp_crtc_atomic_enable(struct dr
+@@ -1473,8 +1473,10 @@ zynqmp_disp_crtc_atomic_enable(struct dr
  
  static void
  zynqmp_disp_crtc_atomic_disable(struct drm_crtc *crtc,
