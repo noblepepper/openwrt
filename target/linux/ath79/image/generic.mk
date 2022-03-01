@@ -1198,6 +1198,16 @@ define Device/glinet_gl-ar750
 endef
 TARGET_DEVICES += glinet_gl-ar750
 
+define Device/glinet_nb-pr1
+  SOC := qca9531
+  DEVICE_VENDOR := GL.iNet
+  DEVICE_MODEL := NB-PR1
+  DEVICE_PACKAGES := kmod-usb2 kmod-ath10k-ct ath10k-firmware-qca9887-ct
+  IMAGE_SIZE := 16000k
+  SUPPORTED_DEVICES += nb-pr1
+endef
+TARGET_DEVICES += glinet_nb-pr1
+
 define Device/glinet_gl-mifi
   SOC := ar9331
   DEVICE_VENDOR := GL.iNET
